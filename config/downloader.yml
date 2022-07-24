@@ -1,0 +1,9 @@
+input:
+  csv:
+    path:
+    url_column:
+
+output:
+  directory:
+    path:
+    clean:

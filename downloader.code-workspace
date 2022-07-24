@@ -1,0 +1,30 @@
+{
+	"folders": [
+		{
+			"name": "Downloader",
+			"path": "."
+		}
+	],
+	"settings": {
+		"python.terminal.activateEnvInCurrentTerminal": true,
+		"python.formatting.provider": "autopep8",
+		"python.linting.flake8Enabled": true,
+		"python.linting.mypyEnabled": true,
+		"python.linting.pylintEnabled": false,
+		"editor.insertSpaces": true,
+		"editor.detectIndentation": true,
+		"files.insertFinalNewline": true,
+		"files.trimFinalNewlines": true,
+	},
+	"extensions": {
+		"recommendations": [
+			"mosapride.zenkaku",
+			"christian-kohler.path-intellisense",
+			"ryanluker.vscode-coverage-gutters",
+			"ms-python.python",
+			"magicstack.magicpython",
+			"njpwerner.autodocstring",
+			"cschleiden.vscode-github-actions",
+		]
+	}
+}
