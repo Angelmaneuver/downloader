@@ -14,25 +14,10 @@ from .classes.download import Download
 
 @task(name='Initialize')
 def initialize() -> list[Download]:
-    with open(Path.cwd().joinpath('config', 'downloader.yml'), 'r') as file:
-        yaml = safe_load(file.read())
-        config = yaml['input']['csv']
+    input_path, output_path, cleaning, url_column = get_config()
 
-    input_path = Path(config['path'])
-
-    if not input_path.is_absolute():
-        input_path = Path.cwd().joinpath(config['path'])
-
-    output_path = Path(yaml['output']['directory']['path'])
-
-    if not output_path.is_absolute():
-        output_path = Path.cwd().joinpath(yaml['output']['directory']['path'])
-
-    if yaml['output']['directory']['clean']:
-        rmtree(output_path)
-        mkdir(output_path)
-
-    url_column = config['url_column']
+    if cleaning:
+        clean(output_path)
 
     with open(input_path, 'r') as file:
         records = tuple(csv.DictReader(file))
@@ -40,14 +25,11 @@ def initialize() -> list[Download]:
     downloads = []
 
     for record in records:
-        for url in record[url_column].split(','):
-            if len(url) > 0:
-                filename = Path(urlparse(url).path).name
-
-                downloads.append(Download(
-                    url=url,
-                    path=output_path.joinpath(filename)
-                ))
+        downloads.extend(get_download_target(
+            url_column,
+            output_path,
+            record
+        ))
 
     return list(set(downloads))
 
@@ -62,6 +44,53 @@ def download(download: Download) -> None:
 
 with Flow(name='Downloader') as flow:
     download.map(initialize())
+
+
+def get_config() -> tuple[Path, Path, bool, str]:
+    with open(Path.cwd().joinpath('config', 'downloader.yml'), 'r') as file:
+        yaml = safe_load(file.read())
+
+    input_path = Path(yaml['input']['csv']['path'])
+
+    if not input_path.is_absolute():
+        input_path = Path.cwd().joinpath(yaml['input']['csv']['path'])
+
+    output_path = Path(yaml['output']['directory']['path'])
+
+    if not output_path.is_absolute():
+        output_path = Path.cwd().joinpath(yaml['output']['directory']['path'])
+
+    return (
+        input_path,
+        output_path,
+        yaml['output']['directory']['clean'],
+        yaml['input']['csv']['url_column']
+    )
+
+
+def clean(path: Path) -> None:
+    rmtree(path)
+    mkdir(path)
+
+
+def get_download_target(
+    url_column: str,
+    path: Path,
+    record: dict
+) -> list[Download]:
+
+    downloads = []
+
+    for url in record[url_column].split(','):
+        if len(url) > 0:
+            filename = Path(urlparse(url).path).name
+
+            downloads.append(Download(
+                url=url,
+                path=path.joinpath(filename)
+            ))
+
+    return downloads
 
 
 def run():
